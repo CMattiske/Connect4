@@ -1,2 +1,2 @@
-# myrepository
-First repository, using for Connect 4
+# Connect4
+.jar and .exe of latest stable version included
