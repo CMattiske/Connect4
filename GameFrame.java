@@ -85,9 +85,9 @@ public class GameFrame extends JFrame implements GameUI {
 		//Preliminary Stuff
 		super(title);
 		setSize(WINDOW_WIDTH,WINDOW_HEIGHT);
-	    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+	    	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
 	    
-	    //Set up network stuff
+	   	 //Set up network stuff
 		cm = new ConnectionManager(this, ConnectionManager.DEFAULT_PORT);
 		waitingThread = new Thread(cm);
 		
@@ -97,58 +97,58 @@ public class GameFrame extends JFrame implements GameUI {
 		
 		menu_test.add(menu_test_test1);
 		menu_test.add(menu_test_test2);
-	    menu_test_test1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
-	    menu_test_test2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
+	   	menu_test_test1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
+	    	menu_test_test2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
 	    
-	    this.setJMenuBar(menuBar);
+	   	this.setJMenuBar(menuBar);
 	    
-	    //Set up listeners
+	   	//Set up listeners
 	    
-	    MenuListener ml = new MenuListener();
-	    menu_test_test1.addActionListener(ml);
-	    menu_test_test2.addActionListener(ml);
+	    	MenuListener ml = new MenuListener();
+	    	menu_test_test1.addActionListener(ml);
+	   	menu_test_test2.addActionListener(ml);
 	    
-	    ButtonListener bl = new ButtonListener();
+	   	ButtonListener bl = new ButtonListener();
 		button_host.addActionListener(bl);
 		button_join.addActionListener(bl);
-	    
-	    //Initiate components
-	    label_host.setLabelFor(button_host);
-	    button_cancel.setEnabled(false);
-	    textField_hostname.setText(""+cm.localhost().getHostName());
+
+		//Initiate components
+		label_host.setLabelFor(button_host);
+		button_cancel.setEnabled(false);
+		textField_hostname.setText(""+cm.localhost().getHostName());
 		textField_hostname.setEditable(true);
 		label_host.setText(cm.localhost().getHostName()+"/"+cm.localhost().getHostAddress());
 		
 		JPanel vertPanel = new JPanel();
-	    vertPanel.setLayout(new BoxLayout(vertPanel,BoxLayout.Y_AXIS));
-	    JPanel hostPanel = new JPanel();
-	    hostPanel.add(button_host);
-	    hostPanel.add(label_host);
-	    hostPanel.add(button_join);
-	    hostPanel.add(textField_hostname);
-	    JPanel namePanel = new JPanel();
-	    namePanel.add(label_playername);
-	    namePanel.add(textField_playername);
-	    JPanel spinPanel = new JPanel();
-	    spinPanel.add(spinLabel_columns);
-	    spinPanel.add(spinnerColumns);
-	    spinPanel.add(spinLabel_rows);
-	    spinPanel.add(spinnerRows);
-	    spinPanel.add(spinLabel_win);
-	    spinPanel.add(spinnerWin);
+	   	vertPanel.setLayout(new BoxLayout(vertPanel,BoxLayout.Y_AXIS));
+	    	JPanel hostPanel = new JPanel();
+	    	hostPanel.add(button_host);
+		hostPanel.add(label_host);
+		hostPanel.add(button_join);
+		hostPanel.add(textField_hostname);
+		JPanel namePanel = new JPanel();
+		namePanel.add(label_playername);
+		namePanel.add(textField_playername);
+		JPanel spinPanel = new JPanel();
+		spinPanel.add(spinLabel_columns);
+		spinPanel.add(spinnerColumns);
+		spinPanel.add(spinLabel_rows);
+		spinPanel.add(spinnerRows);
+		spinPanel.add(spinLabel_win);
+		spinPanel.add(spinnerWin);
 	    
-	    gamePanel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT-CHAT_HEIGHT));
-	    chatPanel.setPreferredSize(new Dimension(WINDOW_WIDTH, CHAT_HEIGHT));
+		gamePanel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT-CHAT_HEIGHT));
+		chatPanel.setPreferredSize(new Dimension(WINDOW_WIDTH, CHAT_HEIGHT));
 	    
-	    vertPanel.add(hostPanel);
-	    vertPanel.add(namePanel);
-	    vertPanel.add(spinPanel);
-	    vertPanel.add(gamePanel);
-	    vertPanel.add(chatPanel);
+		vertPanel.add(hostPanel);
+		vertPanel.add(namePanel);
+		vertPanel.add(spinPanel);
+		vertPanel.add(gamePanel);
+		vertPanel.add(chatPanel);
 	    
-	    this.add(vertPanel);
+		this.add(vertPanel);
 	    
-	    this.setLocationRelativeTo(null);
+		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 		
 	}
