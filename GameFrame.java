@@ -97,10 +97,10 @@ public class GameFrame extends JFrame implements GameUI {
 		
 		menu_test.add(menu_test_test1);
 		menu_test.add(menu_test_test2);
-	   	menu_test_test1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
-	    	menu_test_test2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
+	   	//menu_test_test1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
+	    	//menu_test_test2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
 	    
-	   	this.setJMenuBar(menuBar);
+	   	//this.setJMenuBar(menuBar);
 	    
 	   	//Set up listeners
 	    
