@@ -1,2 +1,2 @@
 # myrepository
-First repository
+First repository, using for Connect 4
