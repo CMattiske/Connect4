@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 
-public class ConnectionManager implements Runnable {
+public class ConnectionManager implements ActionHandler {
 
 	public static int DEFAULT_PORT = 5000;
 	public static long DEFAULT_SERIAL_MESSAGE = 421L;
@@ -17,9 +17,9 @@ public class ConnectionManager implements Runnable {
 	
 	private GameUI ui;
 	
-    	private static ServerSocket server;
-    	private ObjectOutputStream oos;
-    	private ObjectInputStream ois;
+    private static ServerSocket server;
+    private ObjectOutputStream oos;
+    private ObjectInputStream ois;
     
 	private Socket socket;
 	private InetAddress localhost;
@@ -36,8 +36,7 @@ public class ConnectionManager implements Runnable {
 	private ArrayList<Message> actionLog;
 	private ArrayList<Message> chatLog;
 	
-	public ConnectionManager(GameUI ui, int port) {
-		this.ui = ui;
+	public ConnectionManager(int port) {
 		this.port = port;
 		try {
 			localhost = InetAddress.getLocalHost();
@@ -51,28 +50,37 @@ public class ConnectionManager implements Runnable {
 		chatLog = new ArrayList<Message>(0);
 	}
 	
+	public ConnectionManager(GameUI ui, int port) {
+		this(port);
+		setGameUI(ui);
+	}
+	
+	public void setGameUI(GameUI ui) {
+		this.ui = ui;
+	}
+	
 	public Game connectTo(String host, Player thisPlayer) throws IOException, ClassNotFoundException {
 		socket = new Socket(host, port);
-		oos = new ObjectOutputStream(socket.getOutputStream());
-		ois = new ObjectInputStream(socket.getInputStream());
-		oos.writeObject(localhost+ " has joined!"); //Offer hand shake
-		String message = (String) ois.readObject(); //Confirm hand shake
-		response(message);
-		long seed = (long) ois.readObject(); //Get matching seed
-		index = (int) ois.readObject(); //Read player index
-		response("Connected as player "+index);
-		oos.writeObject(thisPlayer);
-		Player hostPlayer = (Player)ois.readObject();
-		int width = (int) ois.readObject();
-		int height = (int) ois.readObject();
-		int win = (int) ois.readObject();
-
-		sharedRand = new Random(seed);
-
-		connected = true;
-		isServer = false;
-
-		return new Game(ui, sharedRand, hostPlayer, thisPlayer, width, height, win);
+        oos = new ObjectOutputStream(socket.getOutputStream());
+        ois = new ObjectInputStream(socket.getInputStream());
+        oos.writeObject(localhost+ " has joined!"); //Offer hand shake
+        String message = (String) ois.readObject(); //Confirm hand shake
+        response(message);
+        long seed = (long) ois.readObject(); //Get matching seed
+        index = (int) ois.readObject(); //Read player index
+        response("Connected as player "+index);
+        oos.writeObject(thisPlayer);
+        Player hostPlayer = (Player)ois.readObject();
+        int width = (int) ois.readObject();
+        int height = (int) ois.readObject();
+        int win = (int) ois.readObject();
+        
+        sharedRand = new Random(seed);
+        
+        connected = true;
+        isServer = false;
+        
+        return new Game(this, sharedRand, hostPlayer, thisPlayer, width, height, win);
 	}
 	
 	public Game host(Player thisHost, int width, int height, int win) throws IOException, ClassNotFoundException {
@@ -80,27 +88,28 @@ public class ConnectionManager implements Runnable {
 		socket = server.accept();
 		oos = new ObjectOutputStream(socket.getOutputStream());
 		ois = new ObjectInputStream(socket.getInputStream());
-		String message = (String) ois.readObject(); //Accept hand shake
-		response(message);
-		long seed = new Random().nextLong();
-		oos.writeObject("Hello!"); //Confirm hand shake
-		oos.writeObject(seed); //Send matching seed
-		numberOfClients++;
-		oos.writeObject(numberOfClients); //Send player index
-		Player newPlayer = (Player) ois.readObject();
-		response("Hello "+newPlayer.getName()+"!");
-		oos.writeObject(thisHost);
-		oos.writeObject(width);
-		oos.writeObject(height);
-		oos.writeObject(win);
+        String message = (String) ois.readObject(); //Accept hand shake
+        response(message);
+        long seed = new Random().nextLong();
+        oos.writeObject("Hello!"); //Confirm hand shake
+        oos.writeObject(seed); //Send matching seed
+        numberOfClients++;
+        oos.writeObject(numberOfClients); //Send player index
+        Player newPlayer = (Player) ois.readObject();
+        response("Hello "+newPlayer.getName()+"!");
+        oos.writeObject(thisHost);
+        oos.writeObject(width);
+        oos.writeObject(height);
+        oos.writeObject(win);
+        
+        index = 0;
+        sharedRand = new Random(seed);
+        
+        connected = true;
+        isServer = true;
 
-		index = 0;
-		sharedRand = new Random(seed);
+        return new Game(this, sharedRand, thisHost, newPlayer, width, height, win);
 
-		connected = true;
-		isServer = true;
-
-		return new Game(ui, sharedRand, thisHost, newPlayer, width, height, win);
 	}
 	
 	public InetAddress localhost() {
@@ -133,15 +142,15 @@ public class ConnectionManager implements Runnable {
 	public void sendChatMessage(String message) throws IOException {
 		ui.chatMsg(index, message);
 		Message m = new Message(index, message);
-		oos.writeObject(m);
-		chatLog.add(m);
+        oos.writeObject(m);
+        chatLog.add(m);
 	}
 	
 	public void sendActionMessage(int par, String str) throws IOException {
 		ui.actionMsg(index, par, str); //Do the action for this player
 		Message m = new Message(index, par, str);
-		oos.writeObject(m); //Send the action to other player
-		actionLog.add(m);
+        oos.writeObject(m); //Send the action to other player
+        actionLog.add(m);
 	}
 	
 	public Random rand() {

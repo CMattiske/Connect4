@@ -25,7 +25,8 @@ public class Game {
 		HORZ, VERT, DIAGNEG, DIAGPOS;
 	}
 
-	private GameUI ui;
+	private ActionHandler ah;
+	
 	private Random rand;
 	private GamePlayer player1;
 	private GamePlayer player2;
@@ -50,12 +51,12 @@ public class Game {
 	private int[] moveLog;
 	private int currentTurn;
 	
-	public Game(GameUI ui, Random rand, Player p1, Player p2) {
-		this(ui, rand, p1, p2, DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_WIN);
+	public Game(ActionHandler ah, Random rand, Player p1, Player p2) {
+		this(ah, rand, p1, p2, DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_WIN);
 	}
 	
-	public Game(GameUI ui, Random rand, Player p1, Player p2, int w, int h, int winC) {
-		this.ui = ui;
+	public Game(ActionHandler ah, Random rand, Player p1, Player p2, int w, int h, int winC) {
+		this.ah = ah;
 		this.rand = rand;
 		this.player1 = new GamePlayer(this, p1);
 		this.player2 = new GamePlayer(this, p2);
@@ -63,6 +64,10 @@ public class Game {
 		this.height = h;
 		this.winCondition = winC;
 		rack = new Chip[width][height];
+	}
+	
+	public ActionHandler getActionHandler() {
+		return ah;
 	}
 	
 	public void begin(boolean p1starts) {

@@ -8,69 +8,31 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.event.MouseInputAdapter;
 
-public class GameFrame extends JFrame implements GameUI {
 
+public class GameFrame extends JFrame implements GameUI {
+	
 	private final int WINDOW_WIDTH = 1200;
 	private final int WINDOW_HEIGHT = 1000;
 	private final int CHAT_HEIGHT = 150;
-	private final int MAX_RANDOM_PLAYERID = 1000;
 	
-	private ConnectionManager cm;
 	private Thread waitingThread;
 	private boolean tempDisable;
 	
 	private Game game;
 	private GamePlayer me;
-	
-	private final String dir_images = "images/";
-	
-	private JMenuBar menuBar = new JMenuBar();
-	private JMenu menu_test = new JMenu("Test");
-	private JMenuItem menu_test_test1 = new JMenuItem("Center Column");
-	private JMenuItem menu_test_test2 = new JMenuItem("Undo");
-	
-	private JButton button_host = new JButton("Host");
-	private JLabel label_host = new JLabel("localhost");
-	private JButton button_cancel = new JButton("Cancel");
-	private JButton button_join = new JButton("Join");
-	private JTextField textField_hostname = new JTextField("Chris-PC", 20);
-	private JTextField textField_playername = new JTextField(randomName(), 20);
-	private JLabel label_playername = new JLabel("Player name:");
-	
-	private SpinnerModel modelColumns = new SpinnerNumberModel(Game.DEFAULT_WIDTH,1,Game.MAX_COLUMNS,1);
-	private SpinnerModel modelRows = new SpinnerNumberModel(Game.DEFAULT_HEIGHT,1,Game.MAX_ROWS,1);
-	private SpinnerModel modelWin = new SpinnerNumberModel(Game.DEFAULT_WIN,2,Game.MAX_WIN,1);
-	private JSpinner spinnerColumns = new JSpinner(modelColumns);
-	private JSpinner spinnerRows = new JSpinner(modelRows);
-	private JSpinner spinnerWin = new JSpinner(modelWin);
-	private JLabel spinLabel_columns = new JLabel("Width:");
-	private JLabel spinLabel_rows = new JLabel("Height:");
-	private JLabel spinLabel_win = new JLabel("To win:");
 	
 	private GamePanel gamePanel = new GamePanel();
 	private ChatPanel chatPanel = new ChatPanel();
@@ -81,146 +43,33 @@ public class GameFrame extends JFrame implements GameUI {
 	private final int ACTION_NEWGAME = -3;
 	private final int ACTION_NEWGAMEREQUEST = -4;
 	
-	public GameFrame(String title) {
+	public GameFrame(String title, Game game) {
 		//Preliminary Stuff
 		super(title);
 		setSize(WINDOW_WIDTH,WINDOW_HEIGHT);
-	    	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+	    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
 	    
-	   	 //Set up network stuff
-		cm = new ConnectionManager(this, ConnectionManager.DEFAULT_PORT);
-		waitingThread = new Thread(cm);
-		
-		//Construct menu bar
-		
-		//menuBar.add(menu_test);
-		
-		menu_test.add(menu_test_test1);
-		menu_test.add(menu_test_test2);
-	   	//menu_test_test1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.CTRL_MASK));
-	    	//menu_test_test2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
+	    this.game = game;
+	    game.getActionHandler().setGameUI(this);
+		gamePanel.initialise();
 	    
-	   	//this.setJMenuBar(menuBar);
+	    //Set up network stuff
+		waitingThread = new Thread(game.getActionHandler());
 	    
-	   	//Set up listeners
-	    
-	    	MenuListener ml = new MenuListener();
-	    	menu_test_test1.addActionListener(ml);
-	   	menu_test_test2.addActionListener(ml);
-	    
-	   	ButtonListener bl = new ButtonListener();
-		button_host.addActionListener(bl);
-		button_join.addActionListener(bl);
-
-		//Initiate components
-		label_host.setLabelFor(button_host);
-		button_cancel.setEnabled(false);
-		textField_hostname.setText(""+cm.localhost().getHostName());
-		textField_hostname.setEditable(true);
-		label_host.setText(cm.localhost().getHostName()+"/"+cm.localhost().getHostAddress());
+	    gamePanel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT-CHAT_HEIGHT));
+	    chatPanel.setPreferredSize(new Dimension(WINDOW_WIDTH, CHAT_HEIGHT));
 		
 		JPanel vertPanel = new JPanel();
-	   	vertPanel.setLayout(new BoxLayout(vertPanel,BoxLayout.Y_AXIS));
-	    	JPanel hostPanel = new JPanel();
-	    	hostPanel.add(button_host);
-		hostPanel.add(label_host);
-		hostPanel.add(button_join);
-		hostPanel.add(textField_hostname);
-		JPanel namePanel = new JPanel();
-		namePanel.add(label_playername);
-		namePanel.add(textField_playername);
-		JPanel spinPanel = new JPanel();
-		spinPanel.add(spinLabel_columns);
-		spinPanel.add(spinnerColumns);
-		spinPanel.add(spinLabel_rows);
-		spinPanel.add(spinnerRows);
-		spinPanel.add(spinLabel_win);
-		spinPanel.add(spinnerWin);
+	    vertPanel.setLayout(new BoxLayout(vertPanel,BoxLayout.Y_AXIS));
+	    vertPanel.add(gamePanel);
+	    vertPanel.add(chatPanel);
+	    this.add(vertPanel);
 	    
-		gamePanel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT-CHAT_HEIGHT));
-		chatPanel.setPreferredSize(new Dimension(WINDOW_WIDTH, CHAT_HEIGHT));
-	    
-		vertPanel.add(hostPanel);
-		vertPanel.add(namePanel);
-		vertPanel.add(spinPanel);
-		vertPanel.add(gamePanel);
-		vertPanel.add(chatPanel);
-	    
-		this.add(vertPanel);
-	    
-		this.setLocationRelativeTo(null);
+	    this.setLocationRelativeTo(null);
 		this.setVisible(true);
 		
-	}
-	
-	public String randomName() {
-		return "p"+new Random().nextInt(MAX_RANDOM_PLAYERID);
-	}
-	
-	private class MenuListener implements ActionListener {
-		public void actionPerformed(ActionEvent e) {
-			Object source = e.getSource();
-			if (source==menu_test_test1) {
-				try {
-					if (myTurn()) {
-						cm.sendActionMessage(3, "");
-					}
-				} catch (IOException exception) {
-					cm.networkError("IOException while sending action message");
-				}
-			} else if (source==menu_test_test2) {
-				try {
-					if (myTurn()) {
-						cm.sendActionMessage(4, "");
-					}
-				} catch (IOException exception) {
-					cm.networkError("IOException while sending action message");
-				}
-			}
-			updateAll();
-		}
-	}
-	
-	private class ButtonListener implements ActionListener {
-		public void actionPerformed(ActionEvent e){
-			Object source = e.getSource();
-			if (source == button_host) {
-				log("Hosting at "+cm.localhost());
-				try {
-					String playername = textField_playername.getText();
-					if (playername.length()<1) {
-						playername = "Indecisive Host";
-					}
-					int width = (int) spinnerColumns.getValue();
-					int height = (int) spinnerRows.getValue();
-					int win = (int) spinnerWin.getValue();
-					game = cm.host(new Player(playername), width, height, win);
-					startGame();
-					gamePanel.initialise();
-				} catch (IOException exception) {
-					cm.networkError("IOException while attempting to host: "+exception.getMessage());
-				} catch (ClassNotFoundException exception) {
-					cm.networkError("ClassNotFoundException while attempting to host");
-				}
-			} else if (source == button_join) {
-				log("Try to join hostname "+textField_hostname.getText());
-				try {
-					String playername = textField_playername.getText();
-					if (playername.length()<1) {
-						playername = "Indecisive Client";
-					}
-					Player client = new Player(playername);
-					game = cm.connectTo(textField_hostname.getText(), client);
-					startGame();
-					gamePanel.initialise();
-				} catch (IOException exception) {
-					cm.networkError("IOException while attempting to join "+textField_hostname.getText()+": "+exception.getMessage());
-				} catch (ClassNotFoundException exception) {
-					cm.networkError("ClassNotFoundException while attempting to join"+textField_hostname.getText());
-				}
-			}
-			updateAll();
-		}
+		startGame();
+
 	}
 	
 	private class ChatPanel extends JPanel {
@@ -263,10 +112,10 @@ public class GameFrame extends JFrame implements GameUI {
 				if (source==button_send && textField_chat.getText().length()>0) {
 					if (game!=null) {
 						try {
-							cm.sendChatMessage(textField_chat.getText());
+							game.getActionHandler().sendChatMessage(textField_chat.getText());
 							textField_chat.setText("");
 						} catch (IOException exception) {
-							cm.networkError("IOException while sending message");
+							game.getActionHandler().networkError("IOException while sending message");
 						}
 					}
 				}
@@ -401,9 +250,9 @@ public class GameFrame extends JFrame implements GameUI {
 					int column = (e.getX()-RACK_X)/grid_size;
 					if (myTurn() && !game.columnFull(column) && !tempDisable) {
 						try {
-							cm.sendActionMessage(column, "");
+							game.getActionHandler().sendActionMessage(column, "");
 						} catch (IOException exception) {
-							cm.networkError("IOException while sending action message");
+							game.getActionHandler().networkError("IOException while sending action message");
 						}
 					}
 				}
@@ -418,31 +267,31 @@ public class GameFrame extends JFrame implements GameUI {
 					switch (buttons.get(index).getParameter()) {
 					case BUTTON_PARAM_UNDO:
 						try {
-							cm.sendActionMessage(ACTION_UNDO, "");
+							game.getActionHandler().sendActionMessage(ACTION_UNDO, "");
 						} catch (IOException exception) {
-							cm.networkError("IOException sending undo");
+							game.getActionHandler().networkError("IOException sending undo");
 						}
 						break;
 					case BUTTON_PARAM_UNDOREQUEST:
 						try {
-							cm.sendActionMessage(ACTION_UNDOREQUEST, "");
+							game.getActionHandler().sendActionMessage(ACTION_UNDOREQUEST, "");
 						} catch (IOException exception) {
-							cm.networkError("IOException sending undo request");
+							game.getActionHandler().networkError("IOException sending undo request");
 						}
 						break;
 					case BUTTON_PARAM_NEWGAME:
 						try {
-							cm.sendActionMessage(ACTION_NEWGAME, "");
+							game.getActionHandler().sendActionMessage(ACTION_NEWGAME, "");
 						} catch (IOException exception) {
-							cm.networkError("IOException sending new game request");
+							game.getActionHandler().networkError("IOException sending new game request");
 						}
 						break;
 					case BUTTON_PARAM_NEWGAMEREQUEST:
 						try {
-							cm.sendActionMessage(ACTION_NEWGAMEREQUEST, "");
+							game.getActionHandler().sendActionMessage(ACTION_NEWGAMEREQUEST, "");
 							iRequested = true;
 						} catch (IOException exception) {
-							cm.networkError("IOException sending new game request");
+							game.getActionHandler().networkError("IOException sending new game request");
 						}
 					}
 					update();
@@ -538,11 +387,11 @@ public class GameFrame extends JFrame implements GameUI {
 						break;
 					case Game.WINNER_P1:
 						g.setColor(game.getPlayer1().getColor());
-						text = cm.getIndex()==0?"You win!":"You lose!";
+						text = game.getActionHandler().getIndex()==0?"You win!":"You lose!";
 						break;
 					case Game.WINNER_P2:
 						g.setColor(game.getPlayer2().getColor());
-						text = cm.getIndex()==1?"You win!":"You lose!";
+						text = game.getActionHandler().getIndex()==1?"You win!":"You lose!";
 						break;
 					}
 				} else {
@@ -738,11 +587,11 @@ public class GameFrame extends JFrame implements GameUI {
 	
 	private boolean myTurn() {
 		if (game.p1turn()) {
-			if (cm.getIndex()==0) {
+			if (game.getActionHandler().getIndex()==0) {
 				return true;
 			}
 		} else {
-			if (cm.getIndex()==1) {
+			if (game.getActionHandler().getIndex()==1) {
 				return true;
 			}
 		}
@@ -750,24 +599,10 @@ public class GameFrame extends JFrame implements GameUI {
 	}
 	
 	private void startGame() {
-		button_host.setEnabled(false);
-		button_join.setEnabled(false);
-		textField_hostname.setEnabled(false);
-		textField_playername.setEnabled(false);
-		spinnerColumns.setValue(game.getWidth());
-		spinnerColumns.setEnabled(false);
-		spinnerRows.setValue(game.getHeight());
-		spinnerRows.setEnabled(false);
-		spinnerWin.setValue(game.getWinCondition());
-		spinnerWin.setEnabled(false);
 		chatPanel.enableAll();
-		me = game.getPlayer(cm.getIndex());
-		game.begin(cm.rand().nextBoolean());
+		me = game.getPlayer(game.getActionHandler().getIndex());
+		game.begin(game.getActionHandler().rand().nextBoolean());
 		waitingThread.start();
-	}
-	
-	public static void log(String m) {
-		System.out.println(m);
 	}
 	
 	//Credit: Daniel Kvst (StackOverflow) https://stackoverflow.com/a/27740330
@@ -783,5 +618,4 @@ public class GameFrame extends JFrame implements GameUI {
 	    // Draw the String
 	    g.drawString(text, x, y);
 	}
-	
 }
